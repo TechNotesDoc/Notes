@@ -35,6 +35,12 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: 电机驱动相关
+
+   ./Doc/10.电机驱动/Motor_Index.rst
+
+.. toctree::
+   :maxdepth: 1
    :caption: C语言相关
 
    ./Doc/02.C语言相关/C_Index.rst
