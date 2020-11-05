@@ -10,3 +10,4 @@ GIT
 
    ./01.GIT使用说明/git使用说明.md
    ./02.git子模块/git子模块.md
+   ./03.gitcommit提交模板/gitCommit模板.md
