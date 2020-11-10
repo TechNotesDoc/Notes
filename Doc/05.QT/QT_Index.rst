@@ -15,3 +15,4 @@ QT
    ./05.QWidget/QWidget类说明.md
    ./06.Qt维护/Qt维护.md
    ./07.Qt样式表/Qt样式表.md
+   ./08.Quick/Quick.md
