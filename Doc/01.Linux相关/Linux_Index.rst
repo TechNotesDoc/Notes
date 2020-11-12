@@ -25,3 +25,4 @@ Linux
    ./16.制作buildroot文件系统/制作buildroot文件系统.rst
    ./17.IMX6ULL官方Uboot移植/IMX6ULL官方Uboot移植.md
    ./18.Linux驱动学习笔记/驱动.md
+   ./19.VIM编辑器/VIM.md
