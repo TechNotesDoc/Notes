@@ -562,7 +562,137 @@
 
 ### Eclipse 应用程序库文件使用
 
+#### 生成静态库
 
+1. 新建工程
+
+   ![](media/image-20201114154114883.png)
+
+   ![](media/image-20201114154143007.png)
+
+2. 配置工程：同样需要导入符号表
+
+   ![](media/image-20201114154617675.png)
+
+3. 在工程里面新建自己的源码文件即可
+
+   ```c
+   /*
+    * math.c
+    *
+    *  Created on: Nov 14, 2020
+    *      Author: book
+    */
+   
+   
+   int add (int a, int b)
+   {
+   
+   	return (a+b);
+   }
+   
+   ```
+
+   ```c
+   /*
+    * math.h
+    *
+    *  Created on: Nov 14, 2020
+    *      Author: book
+    */
+   
+   #ifndef MATH_H_
+   #define MATH_H_
+   
+   extern int add (int a, int b);
+   
+   #endif /* MATH_H_ */
+   
+   ```
+
+4. 编译即可输出库文件`libmathStaticLib.a`
+
+   ![](media/image-20201114155742666.png)
+
+   
+
+#### 生成动态库
+
+1. 新建工程
+
+   ![](media/image-20201114161725665.png)
+
+   ![](media/image-20201114161747141.png)
+
+2. 配置工程：同样需要导入符号表
+
+   ![](media/image-20201114154617675.png)
+
+3. 在工程里面新建自己的源码文件即可
+
+   ```
+   /*
+    * math.c
+    *
+    *  Created on: Nov 14, 2020
+    *      Author: book
+    */
+   
+   
+   int add (int a, int b)
+   {
+   
+   	return (a+b);
+   }
+   ```
+
+   ```
+   /*
+    * math.h
+    *
+    *  Created on: Nov 14, 2020
+    *      Author: book
+    */
+   
+   #ifndef MATH_H_
+   #define MATH_H_
+   
+   extern int add (int a, int b);
+   
+   #endif /* MATH_H_ */
+   ```
+
+   
+
+4. 编译即可生成动态库`libmathShareLib.so`
+
+   ![](media/image-20201114162245276.png)
+
+#### 嵌入式应用程序使用库文件
+
+##### 静态库使用
+
+需要拷贝刚生成的`libmathStaticLib.a`和头文件`math.h`文件到应用程序目录下，放哪里用户自己组织即可。
+
+1. 添加库文件和库的头文件到工程目录下，自己组织
+
+   我的工程目录如下：
+
+   ![](media/image-20201114165415062.png)
+
+2. 添加头文件路径【includes】到工程
+
+   ![](media/image-20201114164220081.png)
+
+3. 添加库文件到工程
+
+   ![](media/image-20201114164320134.png)
+
+4. 编译即可。
+
+##### 动态库使用
+
+使用方法和静态库完全一样。
 
 ## Ubuntu使用Eclipse开发嵌入式Linux内核
 
@@ -596,3 +726,10 @@ Ctrl +Spase 快捷键： 会自动显示代码
 ![](media/image-20201114105517358.png)
 
 ![](media/image-20201114143628266.png)
+
+### Eclipse 排除文件编译
+
+屏蔽自己不想加入工程的文件【选中文件或者文件夹，右键 Properties】然后按照下面的方法设置（测试发现，只有源代码.c或者cpp文件才有效，屏蔽库或者.h无效）
+
+![](media/image-20201114164514382.png)
+
