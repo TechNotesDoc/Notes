@@ -696,7 +696,127 @@
 
 ## Ubuntu使用Eclipse开发嵌入式Linux内核
 
-## Eclipse使用小技巧
+- 第一步：保证自己的内核可以在终端编译，我的编译步骤如下：
+
+  ```bash
+  export ARCH=arm CROSS_COMPILE=arm-linux-
+  make clean
+  make imx6_v7_ebf_defconfig
+  make zImage V=1
+  
+  等待编译完成
+  ```
+
+- 第二步：新建内核工程
+
+  ![](media/image-20201116113609404.png)
+
+  ![](media/image-20201116113639194.png)
+
+  
+
+- 第三步：链接内核文件
+
+  ![](media/image-20201116134455097.png)
+
+  选择后的工程目录如下图所示：
+
+  ![](media/image-20201116134618660.png)
+
+  
+
+- 设置make选项
+
+  ![](media/image-20201116151442897.png)
+
+- 添加内核和平台相关的头文件路径
+
+  ![](media/image-20201116140624373.png)
+
+- 设置工程某些文件或者文件夹不编译
+
+  ![](media/image-20201116140823392.png)
+
+  ![](media/image-20201116141144735.png)
+
+  过滤后的工程目录效果如下：
+
+  ![](media/image-20201116141332714.png)
+
+- 导出符号表，添加宏定义的符号表，并重新导入到工程
+
+  - 第一步：生成symbols_linux.xml备用
+
+    ```c
+    cd ebf_6ull_linux/include/generated/ 
+    
+    cat autoconf.h |grep define |awk '{print "<macro><name>" $2 "</name><value>" $3 "</value></macro>"}' > symbols_linux.xml
+    ```
+
+  - 第二步：导出eclipse的符号表到桌面文件名字为：eclipseSymbols.xml
+
+    ![](media/image-20201116142131421.png)
+
+  - 第三步：把第一步里面导出来的symbols_linux.xml里面的内容复制到第二步的eclipseSymbols.xml文件的指定位置，并在最前面新增`<macro><name>__KERNEL__</name><value>1</value></macro>`内容即可
+
+    ![](media/image-20201116142613419.png)
+
+  - 第四步重新把eclipseSymbols.xml符号表导入到工程
+
+    ![](media/image-20201116143008277.png)
+
+    导入完以后就可以看到Symbols了，然后稍微浏览下这里的宏，有些宏是字符串类型的，会少最后的分号，自己给补上即可，一般都是正确的，所以需要大致浏览下。（该问题是由于在第一步执行脚本的时候我们用awk命令 空格分割autoconf.h里面每一行的内容，当遇见宏定义如下
+
+    `#define CONFIG_CMDLINE "noinitrd console=ttymxc0,115200"`）noinitrd后面有个空格所以执行
+
+    ```bash
+    cat autoconf.h |grep define |awk '{print "<macro><name>" $2 "</name><value>" $3 "</value></macro>"}' > symbols_linux.xml
+    ```
+
+    脚本的时候，$3等于`"noinitrd`而不是等于`"noinitrd console=ttymxc0,115200"`，如此会在symbols_linux.xml出现下面的定义
+
+    ```bash
+    <macro><name>CONFIG_CMDLINE</name><value>"noinitrd</value><\macro> 
+    ```
+
+    实际上我们需要的却是
+
+    ```bash
+    <macro><name>CONFIG_CMDLINE</name><value>"noinitrd  console=ttymxc0,115200“</value><\macro> 
+    ```
+
+    ![](media/image-20201116143430120.png)
+
+  
+
+- 第五步：配置 **C/C++ Gernal** 
+
+  - 【indexer】 
+
+    - 勾选 【Enable project specific settings】选
+    - 去掉【 Index source files not included in the build】 
+
+    ![](media/image-20201116144453759.png)
+
+  - 【Preprocessor Include Paths】
+
+    - 【Enteries】
+
+      【GNU C –> CDT User Setting Entries –> Add –> Preprocessor Macros File –> 选择 【include/gernerated/autoconf.h】
+
+      所有make menuconfig 时的编译配置信息都在这个文件里，所以需要让eclipse识别这些信息
+
+      ![](media/image-20201116144720970.png)
+
+      
+
+- 添加生成dtb命令：方便生成dtbs文件
+
+  ![](media/image-20201116153141985.png)
+
+ 
+
+
 
 ### 使能自动补全快捷键
 
@@ -729,7 +849,12 @@ Ctrl +Spase 快捷键： 会自动显示代码
 
 ### Eclipse 排除文件编译
 
-屏蔽自己不想加入工程的文件【选中文件或者文件夹，右键 Properties】然后按照下面的方法设置（测试发现，只有源代码.c或者cpp文件才有效，屏蔽库或者.h无效）
+方法一：屏蔽自己不想加入工程的文件【选中文件或者文件夹，右键 Properties】然后按照下面的方法设置（测试发现，只有源代码.c或者cpp文件才有效，屏蔽库或者.h无效）
 
 ![](media/image-20201114164514382.png)
 
+方法二：按alt+enter快捷键进入配置先选，添加过滤，这种方式可以整体选择很过个一起添加。如下图，
+
+![](media/image-20201116140823392.png)
+
+# Eclipse开发应用程序，cmake篇
