@@ -28,3 +28,4 @@ Linux
    ./19.VIM编辑器/VIM.md
    ./20.Eclipse开发ARMLinux/嵌入式Linux开发IDE Eclipse.md
    ./21.GDB调试/GDB调试.md
+   ./22.应用开发/Linux_App.rst
