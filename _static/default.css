@@ -1,11 +1,11 @@
 .wy-nav-content {
-    max-width: 1200px !important;
+    max-width: 1600px !important;
 }
 
 .wy-nav-side {
-    max-width:110%;
+    max-width:150%;
 }
 
 .wy-menu.wy-menu-vertical {
-    max-width:110%;
+    max-width:150%;
 }
