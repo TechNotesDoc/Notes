@@ -8,6 +8,7 @@ Linux
    :numbered:
 
    ./01.常用命令/常用命令.md
+   ./01.常用命令/Linux 常用嵌入式服务器搭建TFTP-NFS-SAMP.md
    ./02.内核编译/内核编译.md
    ./03.NUC972专题/NUC972_Index.rst
    ./04.IMX6专题/IMX6_Index.rst
