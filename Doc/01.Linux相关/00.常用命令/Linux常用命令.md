@@ -1,4 +1,4 @@
-# 常用命令
+# Linux常用命令
 
 ## Git相关
 
@@ -188,39 +188,6 @@ Desktop：文件（目录）名字
   -rw-r--r-- 2 root root 0 5月  31 14:53 infile_hard_file
   
   ```
-
-## 交叉编译器设置相关 
-
-1.临时生效
-
-```shell
-book@100ask:~$ export PATH=$PATH:/home/book/100ask_firefly-rk3288/ToolChain/gcc-linaro-6.2.1-2016.11-x86_64_arm-linux-gnueabihf/bin
-book@100ask:~$ export ARCH=arm
-book@100ask:~$ export CROSS_COMPILE=arm-linux-gnueabihf-
-
-```
-
-2.当前用户永久生效，修改~/.bashrc或者 ~/.bash_profile， 修改完后 执行source ./.bashrc使其生效
-
-```shell
-book@100ask:~$ vim ~/.bashrc
-在行尾添加或修改：
-export ARCH=arm
-export CROSS_COMPILE=arm-linux-gnueabihf-
-export PATH=$PATH:/home/book/100ask_firefly-rk3288/ToolChain/gcc-linaro-6.2.1-2016.11-x86_64_arm-linux-gnueabihf/bin
-book@100ask:~$ source ./.bashrc
-```
-
-3.所有用户永久生效，修改/etc/profile文件
-
-```shell
-book@100ask:~$ sudo vi /etc/profile
-在行尾添加或修改：
-export ARCH=arm
-export CROSS_COMPILE=arm-linux-gnueabihf-
-export PATH=$PATH:/home/book/100ask_firefly-rk3288/ToolChain/gcc-linaro-6.2.1-2016.11-x86_64_arm-linux-gnueabihf/bin
-book@100ask:~$ source /etc/profile
-```
 
 ## 网络文件系统相关
 

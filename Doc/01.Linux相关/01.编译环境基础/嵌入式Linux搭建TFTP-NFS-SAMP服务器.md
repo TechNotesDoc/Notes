@@ -1,69 +1,91 @@
-# Linux 常用嵌入式服务器搭建TFTP/NFS/SAMP
+# 嵌入式Linux搭建TFTP/NFS/SAMP服务器
+
+- **硬件平台**：
+
+  ubuntu虚拟机：IP地址`192.168.2.11`
+
+  window主机：IP地址：`192.168.2.10`
+
+  注意：保证ubuntu和window在同一个网段，能互相ping即可
 
 ## TFTP 服务器相关 
 
-1.安装tftp服务器：`sudo apt-get install tftp-hpa tftpd-hpa`
-2.配置tftp服务器
+目的：ubuntu下安装tftp服务器，设置共享目录为`/home/book/tftpboot`，arm板子在uboot阶段通过tftp服务下载ubuntu，tftp服务器中的内核、设备树、文件系统等到arm板子。
 
-```shell
-mkdir -p /home/book/tftpboot
-chmod 777 /home/book/tftpboot
-sudo vim /etc/default/tftpd-hpa
-		TFTP_DIRECTORY="/home/book/tftpboot" #配置tftp服务器目录
-		TFTP_OPTIONS="-l -c -s"
-```
+1. 安装tftp服务器：`sudo apt-get install tftp-hpa tftpd-hpa`
 
-3.重启TFTP服务:
+2. 配置tftp服务器
 
-```
-sudo service tftpd-hpa restart
-```
+   ```bash
+   mkdir -p /home/book/tftpboot
+   chmod 777 /home/book/tftpboot
+   sudo vim /etc/default/tftpd-hpa
+   		TFTP_DIRECTORY="/home/book/tftpboot" #配置tftp服务器目录
+   		TFTP_OPTIONS="-l -c -s"
+   ```
 
-4.验证TFTP
+   
 
-```bash
-# 随便在一个目录下
-tftp 192.168.2.147
-tftp> get b.txt
-tftp> q
-ls
-b.txt
-```
+3. 重启
+
+   ```bash
+   sudo service tftpd-hpa restart
+   ```
+
+4. 验证是否安装成功
+
+   ```bash
+   # 随便在一个目录下
+   cd /home/book/tftpboot
+   vim test.txt      # 在tftp共享目录下新建文件text.txt
+   cd /home/book     # 切换到到它任意目录，除了tftp服务的共享目录/home/book/tftpboot
+   tftp 192.168.2.11 # 连接tftp服务器
+   tftp> get test.txt# 获取tftp服务器下的文件
+   tftp> q           # 断开tftp连接
+   ls                # 查看是否获取到文件
+   b.txt
+   ```
+
+   
 
 
 
-## NFS 服务器相关 
+## NFS 服务器相关
 
-1.安装nfs服务器：
+目的：ubuntu下安装nfs服务器，设置共享文件夹`/home/book/nfs_rootfs`，方便arm板子通过挂载nfs网络文件夹，开发调试。
 
-```shell
-sudo apt-get install nfs-kernel-server
-```
+1. 安装nfs服务器
 
-2.配置nfs服务器
+   ```bash
+   sudo apt-get install nfs-kernel-server
+   ```
 
-```shell
-sudo vim /etc/exports
-	/home/book/nfs_rootfs *(rw,nohide,insecure,no_subtree_check,async,no_root_squash)
-```
+2. 配置nfs服务器
 
-3.重启nfs服务:
+   ```bash
+   sudo vim /etc/exports
+   	/home/book/nfs_rootfs *(rw,nohide,insecure,no_subtree_check,async,no_root_squash)
+   ```
 
-```bash
-sudo service nfs-kernel-server restart
-```
+3. 重启nfs服务
 
-4.验证nfs服务器
+   ```bash
+   sudo service nfs-kernel-server restart
+   ```
 
-```bash
-sudo mount -t nfs 192.168.2.101:/home/book/nfs_rootfs /mnt
-```
+4. ubuntu下验证nfs服务器
 
-5.开发板内核启动后挂根网络文件夹
+   ```bash
+   sudo mount -t nfs 192.168.2.11:/home/book/nfs_rootfs /mnt
+   ```
 
-```bash
-[root@firefly-rk3288:/]# mount -t nfs  192.168.2.101:/home/book/nfs_rootfs /mnt
-```
+5. 开发板内核启动后挂载NFS网络共享文件夹
+
+   ```bash
+   [root@firefly-rk3288:/]# mount -t nfs  192.168.2.11:/home/book/nfs_rootfs /mnt
+   ```
+
+   
 
 ## Samb服务器
 
