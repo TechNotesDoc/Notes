@@ -4,11 +4,13 @@
 
 ### 下载安装CLion
 
-下载地址：[[Download CLion](https://www.jetbrains.com/clion/download/#section=windows)]
+下载地址：[Download CLion](https://www.jetbrains.com/clion/download/#section=windows)
 
 一路默认安装即可。
 
 ### 破解
+
+[破解补丁下载路径](https://macwk.com/article/jetbrains-crack)
 
 1. 拖拽破解文件到CLion的欢迎界面，会提示重新启动，点击重启后，会出现激活窗口。
 
