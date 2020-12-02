@@ -1,4 +1,4 @@
-# CMake系列
+# bashCMake系列
 
 ##  Ubuntu安装CMake
 
@@ -84,247 +84,260 @@ INCLUDE_DIRECTORY(${CMAKE_CURRENT_BINARY_DIR}
 
 1. CMake 最低版本号要求
 
-```bash
-cmake_minimum_required (VERSION 2.8)
-```
+   ```bash
+   cmake_minimum_required (VERSION 2.8)
+   ```
 
 2. 项目信息
 
-```bash
-project (Demo)
-```
+   ```bash
+   project (Demo)
+   ```
 
 3. `aux_source_directory` 查找当前目录下的所有源文件并将名称保存到 DIR_SRCS 变量
 
-```bash
-aux_source_directory(. DIR_SRCS)
-```
+   ```bash
+   aux_source_directory(. DIR_SRCS)
+   ```
 
 4. `add_executable` 工程生成目标文件
 
-```bash
-add_executable(Demo ${DIR_SRCS})
-```
+   ```bash
+   add_executable(Demo ${DIR_SRCS})
+   ```
 
-5.  target_link_libraries 将若干库链接到目标库文件
+5. target_link_libraries 将若干库链接到目标库文件
 
-```bash
-target_link_libraries(myProject MathFuns) 		# 连接libMathFuns.so库，默认优先链接动态库
-target_link_libraries(myProject libMathFuns.a) 	# 显示指定链接静态库
-target_link_libraries(myProject libMathFuns.so) # 显示指定链接动态库
-target_link_libraries(myProject lib1 lib2 lib3)
-```
+   ```bash
+   target_link_libraries(myProject MathFuns) 		# 连接libMathFuns.so库，默认优先链接动态库
+   target_link_libraries(myProject libMathFuns.a) 	# 显示指定链接静态库
+   target_link_libraries(myProject libMathFuns.so) # 显示指定链接动态库
+   target_link_libraries(myProject lib1 lib2 lib3)
+   ```
 
-链接的顺序应当符合gcc链接顺序规则，被链接的库放在依赖它的库的后面，即如果上面的命令中，lib1依赖于lib2, lib2又依赖于lib3，则在上面命令中必须严格按照lib1 lib2 lib3的顺序排列，否则会报错
-也可以自定义链接选项, 比如针对lib1使用-WL选项，`target_link_libraries(myProject  lib1 -WL, lib2 lib3)`
+   链接的顺序应当符合gcc链接顺序规则，被链接的库放在依赖它的库的后面，即如果上面的命令中，lib1依赖于lib2, lib2又依赖于lib3，则在上面命令中必须严格按照lib1 lib2 lib3的顺序排列，否则会报错
+   也可以自定义链接选项, 比如针对lib1使用-WL选项，`target_link_libraries(myProject  lib1 -WL, lib2 lib3)`
 
 6. `add_library` 生成静态链接库和动态库
 
-```bash
-add_library(libname [SHARED|STATIC] source1 source2 ... sourceN)
-add_library (hello STATIC ${LIBHELLO_SRC}) #生成静态链接库
-add_library (hello SHARED ${LIBHELLO_SRC}) #生成动态链接库
-```
+   ```bash
+   add_library(libname [SHARED|STATIC] source1 source2 ... sourceN)
+   add_library (hello STATIC ${LIBHELLO_SRC}) #生成静态链接库
+   add_library (hello SHARED ${LIBHELLO_SRC}) #生成动态链接库
+   ```
 
 7. `SET_TARGET_PROPERTIES` 设置输出别名，例如希望 `"hello_static"` 在输出时，不是`"hello_static"`，而是以`"hello"`的名字显示，故设置如下
 
-```bash
-SET_TARGET_PROPERTIES (hello_static PROPERTIES OUTPUT_NAME "hello")
-GET_TARGET_PROPERTY (OUTPUT_VALUE hello_static OUTPUT_NAME) #获取值
-```
+   ```bash
+   SET_TARGET_PROPERTIES (hello_static PROPERTIES OUTPUT_NAME "hello")
+   GET_TARGET_PROPERTY (OUTPUT_VALUE hello_static OUTPUT_NAME) #获取值
+   ```
 
 8. `include_directories` 设置头文件位置，相当于g++ -I，可以用相对或者绝对路径，也可以用自定义的变量值
 
-```bash
-INCLUDE_DIRECTORIES(
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_BINARY_DIR}
-    ${PROJECT_SOURCE_DIR}/thirdpart/includes # 本工程需要使用的额外库的头文件存放地
-    ${PROJECT_SOURCE_DIR}/driver
-    ${PROJECT_SOURCE_DIR}/driver/leddrv
-    /usr/local/include                       # 本工程需要包含系统的头文件路径
-)
-```
+   ```bash
+   INCLUDE_DIRECTORIES(
+       ${PROJECT_SOURCE_DIR}
+       ${PROJECT_BINARY_DIR}
+       ${PROJECT_SOURCE_DIR}/thirdpart/includes # 本工程需要使用的额外库的头文件存放地
+       ${PROJECT_SOURCE_DIR}/driver
+       ${PROJECT_SOURCE_DIR}/driver/leddrv
+       /usr/local/include                       # 本工程需要包含系统的头文件路径
+   )
+   ```
 
 9. `link_directories` 添加需要链接的库文件目录,它相当于g++命令的-L选项的作用
 
-```bash
-link_directories(
-      ${PROJECT_SOURCE_DIR}/thirdpart/lib       # 本工程需要使用的第三方库路径
-      /usr/local/lib                            # 本工程需要使用的系统库路径
-)
-```
+   ```bash
+   link_directories(
+         ${PROJECT_SOURCE_DIR}/thirdpart/lib       # 本工程需要使用的第三方库路径
+         /usr/local/lib                            # 本工程需要使用的系统库路径
+   )
+   ```
 
-10. link_libraries 添加需要链接的库文件路径
+10. `link_libraries` 添加需要链接的库文件路径
 
-```bash
-link_libraries(library1 <debug | optimized> library2 ...)
-# 直接是全路径
-link_libraries(“/home/server/third/lib/libcommon.a”)
-# 下面的例子，只有库名，cmake会自动去所包含的目录搜索
-link_libraries(iconv)
-# 传入变量
-link_libraries(${RUNTIME_LIB})
-# 也可以链接多个
-link_libraries("/opt/MATLAB/R2012a/bin/glnxa64/libeng.so"　
-				"/opt/MATLAB/R2012a/bin/glnxa64libmx.so")
-```
+    ```bash
+    link_libraries(library1 <debug | optimized> library2 ...)
+    # 直接是全路径
+    link_libraries(“/home/server/third/lib/libcommon.a”)
+    # 下面的例子，只有库名，cmake会自动去所包含的目录搜索
+    link_libraries(iconv)
+    # 传入变量
+    link_libraries(${RUNTIME_LIB})
+    # 也可以链接多个
+    link_libraries("/opt/MATLAB/R2012a/bin/glnxa64/libeng.so"　
+    				"/opt/MATLAB/R2012a/bin/glnxa64libmx.so")
+    ```
 
 11. `SET_TARGET_PROPERTIES` 用来设置输出的名称
 
-```bash
-SET_TARGET_PROPERTIES (target1 target2 ...PROPERTIES prop1 value1 prop2 value2 ...)
-SET_TARGET_PROPERTIES (hello PROPERTIES VERSION 1.2 SOVERSION 1) 实现动态库版本号 VERSION指代动态库版本，SOVERSION指代API版本。
-SET_TARGET_PROPERTIES(hello_static PROPERTIES OUTPUT_NAME "hello") 将libhello_static.a库名称输出为libhello.a
-```
+    ```bash
+    SET_TARGET_PROPERTIES (target1 target2 ...PROPERTIES prop1 value1 prop2 value2 ...)
+    SET_TARGET_PROPERTIES (hello PROPERTIES VERSION 1.2 SOVERSION 1) 实现动态库版本号 VERSION指代动态库版本，SOVERSION指代API版本。
+    SET_TARGET_PROPERTIES(hello_static PROPERTIES OUTPUT_NAME "hello") 将libhello_static.a库名称输出为libhello.a
+    ```
 
-12.  GET_TARGET_PROPERTY 获取属性值
+12. `GET_TARGET_PROPERTY` 获取属性值
 
-```bash
-GET_TARGET_PROPERTY (VAR target property) VAR:变量 target：目标 property：属性
-GET_TARGET_PROPERTY (OUTPUT_VALUE hello_static OUTPUT_NAME)
-```
+    ```bash
+    GET_TARGET_PROPERTY (VAR target property) VAR:变量 target：目标 property：属性
+    GET_TARGET_PROPERTY (OUTPUT_VALUE hello_static OUTPUT_NAME)
+    ```
 
 13. MESSAGE 打印cmake时信息
 
-```bash
-MESSAGE (STATUS "This is the hello_static OUTPUT_NAME: " ${OUTPUT_VALUE})
-# MESSAGE指令的语法是：
-# MESSAGE([SEND_ERROR | STATUS | FATAL_ERROR] "message to display" ...)
-# 这个指令用于向终端输出用户信息，包含三种类型：
-# SEND_ERROR，产生错误，生成过程被跳过。
-# SATUS,输出前缀为-的信息。
-# FATAL_ERROR，立即终止所有cmake过程
-```
+    ```bash
+    MESSAGE (STATUS "This is the hello_static OUTPUT_NAME: " ${OUTPUT_VALUE})
+    # MESSAGE指令的语法是：
+    # MESSAGE([SEND_ERROR | STATUS | FATAL_ERROR] "message to display" ...)
+    # 这个指令用于向终端输出用户信息，包含三种类型：
+    # SEND_ERROR，产生错误，生成过程被跳过。
+    # SATUS,输出前缀为-的信息。
+    # FATAL_ERROR，立即终止所有cmake过程
+    ```
+
+    
 
 14. `add_library` 导入库
 
-```bash
-add_library(<name> [STATIC | SHARED | MODULE | UNKNOWN] IMPORTED)
-导入了一个已存在的<name>库文件，导入库一般配合set_target_properties使用，这个命令用来指定导入库的路径,比如：
-add_library(test SHARED IMPORTED)
-set_target_properties( test #指定目标库名称
-PROPERTIES IMPORTED_LOCATION #指明要设置的参数
-libs/src/${ANDROID_ABI}/libtest.so #设定导入库的路径)
-```
+    ```bash
+    add_library(<name> [STATIC | SHARED | MODULE | UNKNOWN] IMPORTED)
+    导入了一个已存在的<name>库文件，导入库一般配合set_target_properties使用，这个命令用来指定导入库的路径,比如：
+    add_library(test SHARED IMPORTED)
+    set_target_properties( test #指定目标库名称
+    PROPERTIES IMPORTED_LOCATION #指明要设置的参数
+    libs/src/${ANDROID_ABI}/libtest.so #设定导入库的路径)
+    ```
 
 15. `set`
 
-```bash
-# 设置可执行文件的输出路径(EXCUTABLE_OUTPUT_PATH是全局变量)
-set(EXECUTABLE_OUTPUT_PATH [output_path])
-# 设置库文件的输出路径(LIBRARY_OUTPUT_PATH是全局变量)
-set(LIBRARY_OUTPUT_PATH [output_path])
-# 设置C++编译参数(CMAKE_CXX_FLAGS是全局变量)
-set(CMAKE_CXX_FLAGS "-Wall std=c++11")
-# 设置源文件集合(SOURCE_FILES是本地变量即自定义变量)
-set(SOURCE_FILES main.cpp test.cpp ...)
-# 设置编译类型debug 或者release。 debug 版会生成相关调试信息，可以使用GDB 进行调试；release不会生成调试信息
-set(CMAKE_BUILE_TYPE DEBUG)
-# 设置编译器的类型
-SET(CMAKE_C_FLAGS_DEBUG “-g -Wall”)
-# 设置低版本g++编译器支持c++11，高版本自动识别
-set(CMAKE_CXX_STANDARD 11)
-```
+    ```bash
+    # 设置可执行文件的输出路径(EXCUTABLE_OUTPUT_PATH是全局变量)
+    set(EXECUTABLE_OUTPUT_PATH [output_path])
+    # 设置库文件的输出路径(LIBRARY_OUTPUT_PATH是全局变量)
+    set(LIBRARY_OUTPUT_PATH [output_path])
+    # 设置C++编译参数(CMAKE_CXX_FLAGS是全局变量)
+    set(CMAKE_CXX_FLAGS "-Wall std=c++11")
+    # 设置源文件集合(SOURCE_FILES是本地变量即自定义变量)
+    set(SOURCE_FILES main.cpp test.cpp ...)
+    # 设置编译类型debug 或者release。 debug 版会生成相关调试信息，可以使用GDB 进行调试；release不会生成调试信息
+    set(CMAKE_BUILE_TYPE DEBUG)
+    # 设置编译器的类型
+    SET(CMAKE_C_FLAGS_DEBUG “-g -Wall”)
+    # 设置低版本g++编译器支持c++11，高版本自动识别
+    set(CMAKE_CXX_STANDARD 11)
+    ```
 
-需要注意的是，在哪里 ADD_EXECUTABLE 或 ADD_LIBRARY,如果需要改变目标存放路径,就在哪里的上面加入上述的定义
+    需要注意的是，在哪里 ADD_EXECUTABLE 或 ADD_LIBRARY,如果需要改变目标存放路径,就在哪里的上面加入上述的定义
 
 16. `add_subdirectory`
+
     如果当前目录下还有子目录时可以使用add_subdirectory，子目录中也需要包含有CMakeLists.txt
 
-```bash
-# sub_dir指定包含CMakeLists.txt和源码文件的子目录位置
-# binary_dir是输出路径， 一般可以不指定
-add_subdirecroty(sub_dir [binary_dir])
-```
+    ```bash
+    # sub_dir指定包含CMakeLists.txt和源码文件的子目录位置
+    # binary_dir是输出路径， 一般可以不指定
+    add_subdirecroty(sub_dir [binary_dir])
+    ```
 
-17.  文件操作命令`file`
+    
 
-```bash
-# 将message写入filename文件中,会覆盖文件原有内容
-file(WRITE filename "message")
-# 将message写入filename文件中，会追加在文件末尾
-file(APPEND filename "message")
-# 重命名文件
-file(RENAME <oldname> <newname>)
-# 删除文件， 等于rm命令
-file(REMOVE [file1 ...])
-# 创建目录
-file(MAKE_DIRECTORY [dir1 dir2 ...])
-#这个命令将把该目录下及所有子文件夹内的所有后缀为.cpp的文件的路径，全部放入SRC_LIST这个变量中
+17. 文件操作命令`file`
 
-file(GLOB_RECURSE SRC_LIST "*.cpp")
-file(GLOB_RECURSE HEADERS "*.h")
-file(GLOB_RECURSE FORMS "*.ui")
-file(GLOB_RECURSE RESOURCES "*.qrc")
-```
+    ```bash
+    # 将message写入filename文件中,会覆盖文件原有内容
+    file(WRITE filename "message")
+    # 将message写入filename文件中，会追加在文件末尾
+    file(APPEND filename "message")
+    # 重命名文件
+    file(RENAME <oldname> <newname>)
+    # 删除文件， 等于rm命令
+    file(REMOVE [file1 ...])
+    # 创建目录
+    file(MAKE_DIRECTORY [dir1 dir2 ...])
+    #这个命令将把该目录下及所有子文件夹内的所有后缀为.cpp的文件的路径，全部放入SRC_LIST这个变量中
+    
+    file(GLOB_RECURSE SRC_LIST "*.cpp")
+    file(GLOB_RECURSE HEADERS "*.h")
+    file(GLOB_RECURSE FORMS "*.ui")
+    file(GLOB_RECURSE RESOURCES "*.qrc")
+    ```
+
+    
 
 18. `set_directory_properties` 设置某个路径的一种属性
 
-```bash
-set_directory_properties(PROPERTIES prop1 value1 prop2 value2)
-prop1 prop代表属性，取值为：
-INCLUDE_DIRECTORIES
-LINK_DIRECTORIES
-INCLUDE_REGULAR_EXPRESSION
-ADDITIONAL_MAKE_CLEAN_FILES
-```
+    ```bash
+    set_directory_properties(PROPERTIES prop1 value1 prop2 value2)
+    prop1 prop代表属性，取值为：
+    INCLUDE_DIRECTORIES
+    LINK_DIRECTORIES
+    INCLUDE_REGULAR_EXPRESSION
+    ADDITIONAL_MAKE_CLEAN_FILES
+    ```
+
+    
 
 19. `find_library` 查找库所在目录，并将查找到路径放入到变量中
 
-```bash
-find_library(RUNTIME_LIB_VAR rt /usr/lib /usr/local/lib NO_DEFAULT_PATH)
-cmake会在目录中查找，如果所有目录中都没有，值RUNTIME_LIB_VAR就会被赋为NO_DEFAULT_PATH
-```
+    ```bash
+    find_library(RUNTIME_LIB_VAR rt /usr/lib /usr/local/lib NO_DEFAULT_PATH)
+    cmake会在目录中查找，如果所有目录中都没有，值RUNTIME_LIB_VAR就会被赋为NO_DEFAULT_PATH
+    ```
 
-2. `add_definitions`
+20. `add_definitions`
 
-```bash
-向 C/C++编译器添加-D 定义,比如:
-add_definitions(-DENABLE_DEBUG -DABC),参数之间用空格分割。
-如果你的代码中定义了
-#ifdef ENABLE_DEBUG 
-	这个代码块就会生效
-#endif
-```
+    ```bash
+    向 C/C++编译器添加-D 定义,比如:
+    add_definitions(-DENABLE_DEBUG -DABC),参数之间用空格分割。
+    如果你的代码中定义了
+    #ifdef ENABLE_DEBUG 
+    	这个代码块就会生效
+    #endif
+    ```
 
-21.  `add_dependencies`
+    
 
-```bash
-定义 target 依赖的其他 target,确保在编译本 target 之前,其他的 target 已经被构建。
-add_dependencies(target-name depend-target1
-depend-target2 ...)
-```
+21. `add_dependencies`
+
+    ```bash
+    定义 target 依赖的其他 target,确保在编译本 target 之前,其他的 target 已经被构建。
+    add_dependencies(target-name depend-target1
+    depend-target2 ...)
+    ```
 
 22. `file`
 
-```bash
-file操作：
-message(STATUS "current dir: ${CMAKE_CURRENT_SOURCE_DIR}")  
-file(WRITE test1.txt "Some messages to Write\n" )  
-file(APPEND test1.txt "Another message to write\n")  
-file(READ test1.txt CONTENTS LIMIT 4 OFFSET 12)  
-message(STATUS "contents of test1.txt is: \n ${CONTENTS}")  
-file(MD5 ${CMAKE_CURRENT_SOURCE_DIR}/test1.txt HASH_CONTENTS)  
-message(STATUS "hash contents of test1.txt is: \n ${HASH_CONTENTS}")  
-file(STRINGS test1.txt PARSED_STRINGS)  
-message(STATUS "\n strings of test1.txt is: \n ${PARSED_STRINGS}")  
-file(GLOB files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.*")  
-message(STATUS  "files: ${files}")  
-file(MAKE_DIRECTORY dir1 dir2)  
-file(RENAME dir2 dir3)  
-file(REMOVE dir3)  
-file(REMOVE_RECURSE dir3)  
-file(RELATIVE_PATH relative_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/test1.txt)  
-message(STATUS "relative path : ${relative_path}")  
-file(TO_CMAKE_PATH "$ENV{PATH}" cmake_path)  
-message(STATUS "cmake path: ${cmake_path}")  
-file(TO_NATIVE_PATH "/usr/local/sbin;/usr/local/bin" native_path)  
-message(STATUS "native path: ${native_path}")  
-file(DOWNLOAD "http://www.baidu.com" ${CMAKE_CURRENT_SOURCE_DIR}/index.html SHOW_PROGRESS)  
-file(COPY test1.txt DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dir1)  
-file(INSTALL test1.txt DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dir1)
-```
+    ```bash
+    file操作：
+    message(STATUS "current dir: ${CMAKE_CURRENT_SOURCE_DIR}")  
+    file(WRITE test1.txt "Some messages to Write\n" )  
+    file(APPEND test1.txt "Another message to write\n")  
+    file(READ test1.txt CONTENTS LIMIT 4 OFFSET 12)  
+    message(STATUS "contents of test1.txt is: \n ${CONTENTS}")  
+    file(MD5 ${CMAKE_CURRENT_SOURCE_DIR}/test1.txt HASH_CONTENTS)  
+    message(STATUS "hash contents of test1.txt is: \n ${HASH_CONTENTS}")  
+    file(STRINGS test1.txt PARSED_STRINGS)  
+    message(STATUS "\n strings of test1.txt is: \n ${PARSED_STRINGS}")  
+    file(GLOB files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.*")  
+    message(STATUS  "files: ${files}")  
+    file(MAKE_DIRECTORY dir1 dir2)  
+    file(RENAME dir2 dir3)  
+    file(REMOVE dir3)  
+    file(REMOVE_RECURSE dir3)  
+    file(RELATIVE_PATH relative_path ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/test1.txt)  
+    message(STATUS "relative path : ${relative_path}")  
+    file(TO_CMAKE_PATH "$ENV{PATH}" cmake_path)  
+    message(STATUS "cmake path: ${cmake_path}")  
+    file(TO_NATIVE_PATH "/usr/local/sbin;/usr/local/bin" native_path)  
+    message(STATUS "native path: ${native_path}")  
+    file(DOWNLOAD "http://www.baidu.com" ${CMAKE_CURRENT_SOURCE_DIR}/index.html SHOW_PROGRESS)  
+    file(COPY test1.txt DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dir1)  
+    file(INSTALL test1.txt DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/dir1)
+    ```
+
+    
 
 ## 工程实例
 
@@ -747,3 +760,131 @@ xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ sh Demo-1.0.1-Linux.sh
 ```
 
 ![](media/image-20200505214935133.png)
+
+## 进阶
+
+### 常用命令
+
+#### set命令
+
+**格式**
+
+```
+set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
+```
+
+1. 设置普通变量
+
+   ```bash
+   set(<variable> <value>... [PARENT_SCOPE])
+   ```
+
+   如果增加了 `PARENT_SCOPE` 选项的话, 表示在上层作用域/目录 有效，当前层作用域/目录无效。
+
+   例如:
+
+   - 顶层CMakeFile.txt
+
+     ```cmake
+     SET(libsDir ./libs)
+     MESSAGE("top libsDir=${libsDir}")
+     
+     add_subdirectory(./sub)
+     MESSAGE("sub fix libsDir=${libsDir}")
+     ```
+
+   - sub目录下的CMakeFile.txt
+
+     ```cmake
+     # 假如这里不添加PARENT_SCOPE选项打印日志为A
+     SET(libsDir ./sub/libs)
+     
+     # 添加PARENT_SCOPE选项后日志为B
+     SET(libsDir ./sub/libs PARENT_SCOPE)
+         
+     MESSAGE("sub libsDir=${libsDir}" )
+     ```
+
+   - 则：
+
+     - 不添加`PARENT_SCOPE`日志A:
+
+       ```bash
+       top libsDir=./libs
+       sub libsDir=./sub/libs #子目录修改后，只在子目录下生效，返回顶层目录后，依然为以前的值
+       sub fix libsDir=./libs
+       ```
+
+     - 添加`PARENT_SCOPE`日志B:
+
+       ```bash
+       top libsDir=./libs
+       sub libsDir=./libs #子目录修改后，子目录下也不会生效，返回顶层目录后，顶层目录下被修改了
+       sub fix libsDir=./sub/libs
+       ```
+
+   **总结**：针对普通变量，`PARENT_SCOPE` 选项只对上层作用域或者目录有效，对本目录无效
+
+   不添加`PARENT_SCOPE` 选项，只对当前目录或者作用域有效，上层目录或者作用域无效。
+
+2. 设置缓存变量
+
+   **格式**：
+
+   ```cmake
+   set(<variable> <value>... CACHE <type> <docstring> [FORCE])
+   ```
+
+   cache变量全部是全局变量，变量的值可以在CMakeCache.txt中找到，如`CMAKE_INSTALL_PREFIX`。
+
+   <type>被 CMake GUI 用来选择一个窗口，让用户设置值。<type>可以是下述值中的一个：
+
+   | 类型     | 内容                       | cmake-gui效果                         |
+   | -------- | -------------------------- | ------------------------------------- |
+   | BOOL     | bool值，只有ON/OFF两种个值 | checkBox，等同效果于OPTION            |
+   | FILEPATH | 文件路径                   | 文件对话框                            |
+   | PATH     | 目录路径                   | 路径对话框                            |
+   | STRING   | 字符串                     | 输入框或内容为string列表的comboBox    |
+   | INTERNAL | 字符串                     | 不在界面显示，使用此类型，则默认FORCE |
+
+3. 设置环境变量
+
+   **格式**
+
+   ```cmake
+   set(ENV{<variable>} [<value>])
+   ```
+
+   设置环境变量<variable>的值为<value>. 后面使用 `$ENV{}` 可以获取该值.
+
+   判断环境变量是否定义 
+
+   ```cmake
+   set(ENV{PATH} /home/martink)
+   
+   if(NOT DEFINED ENV{JAVA_HOME})
+       # 没有找到JAVA_HOME环境变量
+       message(FATAL_ERROR "not defined environment variable:JAVA_HOME") 
+   endif()
+   
+   if(DEFINED ENV{JAVA_HOME})
+       # 找到JAVA_HOME环境变量
+       message(STATUS  "defined environment variable:JAVA_HOME")  
+   endif()
+   
+   if($ENV{JAVA_HOME})
+       # 找到JAVA_HOME环境变量
+       message(STATUS  "defined environment variable:JAVA_HOME")  
+   endif()
+   
+   if(ENV{JAVA_HOME})     这种方案是错误的
+       message(STATUS  "defined environment variable:JAVA_HOME")  
+   endif()
+   ```
+
+#### 删除变量
+
+```bash
+unset(<variable> CACHE)
+```
+
