@@ -1,4 +1,4 @@
-# bashCMake系列
+# CMake系列
 
 ##  Ubuntu安装CMake
 
@@ -10,11 +10,11 @@ xym@pc:~$ cmake -version 				#查看是否安装了cmake
 
 **下载地址：**[https://github.com/RobotFly/cmake_demo.git](https://github.com/RobotFly/cmake_demo.git)
 
-![](media/image-20200504172730584.png)
+![](media/image-20200504172730584-1608002400675.png)
 
 我这里以最新版本v3.17为例说明：下载【`cmake-3.17.0-Linux-x86_64.tar.gz`】
 
-![](media/image-20200504172959901.png)
+![](media/image-20200504172959901-1608002400676.png)
 
 ### 安装
 
@@ -27,7 +27,7 @@ xym@pc:~/Downloads$ sudo tar -zxvf cmake-3.17.0-Linux-x86_64.tar.gz -C /opt/
 
 解压完后查看如下图
 
-![](media/image-20200504174119656.png)
+![](media/image-20200504174119656-1608002400676.png)
 
 添加软连接
 
@@ -49,7 +49,7 @@ CMake suite maintained and supported by Kitware (kitware.com/cmake).
 xym@pc:~$ cmake-gui  #调出Gui配置界面
 ```
 
-![](media/image-20200504175159984.png)
+![](media/image-20200504175159984-1608002400676.png)
 
 ## 基本命令
 
@@ -369,7 +369,7 @@ Demo
 
 在vscode里面显示目录结构如下图所示：
 
-![](media/image-20200505204324288.png)
+![](media/image-20200505204324288-1608002400676.png)
 
 ### 源码分析
 
@@ -675,7 +675,7 @@ xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ ls ./lib/ ./bin/    #查看生�
 xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ ./bin/Demo 2 3      #执行应用程序
 ```
 
-![](media/image-20200505211000042.png)
+![](media/image-20200505211000042-1608002400676.png)
 
 #### 安装应用程序
 
@@ -683,7 +683,7 @@ xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ ./bin/Demo 2 3      #执行应�
 xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ ccmake ..  #调用配置界面，配置默认安装路径，
 ```
 
-![](media/image-20200505211756987.png)
+![](media/image-20200505211756987-1608002400676.png)
 
 
 
@@ -693,7 +693,7 @@ xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ make
 xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ make install
 ```
 
-![](media/image-20200505212421274.png)
+![](media/image-20200505212421274-1608002400676.png)
 
 查看应用程序连接
 
@@ -701,7 +701,7 @@ xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ make install
 xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ ldd  ./bin/Demo
 ```
 
-![](media/image-20200505212634880.png)
+![](media/image-20200505212634880-1608002400676.png)
 
 #### 打包
 
@@ -759,7 +759,7 @@ cpack -C CPackSourceConfig.cmake #生成源码安装包
 xym@pc:~/Demo/cmakelearn/cmake-demo/Demo/build$ sh Demo-1.0.1-Linux.sh
 ```
 
-![](media/image-20200505214935133.png)
+![](media/image-20200505214935133-1608002400676.png)
 
 ## 进阶
 
@@ -888,3 +888,12 @@ set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
 unset(<variable> CACHE)
 ```
 
+## 深入理解find_package
+
+大神，请教个问题，
+
+1. 网上下载了个开源的cmake组织的spdlog 工程(一个c++的日志库)，我在ubuntu_x86_64下编译安装在`/usr/local/`下，然后安装的时候，默认在`/usr/local/lib/cmake/spdlog`路径下有个`spdlogConfig.cmake`文件.
+2. 我在程序中引用这个库的时候使用`FIND_PACKAGE(spdlog REQUIRED)`找这个库，根据FIND_PACKAGE的机制
+   - 先以Module模式在cmake的安装目录和CMAKE_MODULE_PATH指定的目录去找`Findspdlog.cmake`的文件。
+   - 如果没有的话再转为Config模式，去系统目录PATH下找`spdlogConfig.cmae`文件。
+3. 现在的问题是，如第一步描述的，`/usr/local/lib/cmake/spdlog/spdlogConfig.cmake`文件已经存在，为什么程序提示找不到spdlog
