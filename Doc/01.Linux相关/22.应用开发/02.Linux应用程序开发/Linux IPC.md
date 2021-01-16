@@ -810,7 +810,7 @@ int main()
 
 ![](media/image-20210114170429669.png)
 
-线程间同步
+**线程间同步**
 
 ```c
 #include <stdio.h>
@@ -880,6 +880,47 @@ int main()
 4. Posix信号量是基于内存的，即信号量值是放在共享内存中的，它是由可能与文件系统中的路径名对应的名字来标识的。而System v信号量则是基于内核的，它放在内核里面；
 5. POSIX 信号量的头文件是 <semaphore.h>，而 System V 信号量的头文件是 <sys/sem.h>；
 6. Posix还有有名信号量，一般用于进程同步, 有名信号量是内核持续的。
+
+### 内核信号量
+
+内核信号量只能在内核中使用，无法在用户态使用。一般我们在编写linux驱动程序中使用。
+
+内核信号量可以使线程进入休眠状态，但是，信号量的开销要比自旋锁大，因为信号量使 线程进入休眠状态 以后会切换线程，切换线程就会有开销。总结一下信号量的特点：
+
+- 因为信号量可以使等待资源线程进入休眠状态，因此适用于那些占用资源比较久的场合；
+- 因此信号量不能用于中断中，因为信号量会引起休眠，中断不能休眠；
+- 如果共享资源的持有时间比较短，那就不适合使用信号量了，因为频繁的休眠、切换线程引起的开销要远大于信号量带来的那点优势。
+
+计数型信号量不能用于互斥访问，因为它允许多个线程同时访问共享资源。线程申请一次信号量就会自减一次 知道为0；如果要互斥的访问共享资源那么信号量的值就不能大于1，此时的信号量就是一个二值信号量。 Linux内核使用 semaphore结构体表示信号量，结构体内容如下所示：
+
+```c
+struct semaphore { 
+	raw_spinlock_t lock; 
+	unsigned int count; 
+	struct list_head wait_list; 
+};
+```
+
+
+
+| 信号量的API函数                                  | 函数  功能                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `DEFINE_SEAMPHORE(name)`                         | 定义一个信号量，并且设置信号量的值为1,此时类似互斥锁         |
+| `void sema_init(struct semaphore *sem, int val)` | 初始化信号量sem，设置信号量值为 val                          |
+| `void down(struct semaphore *sem)`               | 获取信号量，因为会导致休眠，因此不能在中断中使用             |
+| `int down_trylock(struct semaphore *sem)`        | 尝试获取信号量，如果能获取到信号量就获取，并且返回 0。如果不能就返回非 0，并且不会进入休眠 |
+| `int down_interruptible(struct semaphore *sem)`  | 获取信号量，和down类似，只是使用 down进入休眠状态的线程不能被信号打断。而使用此函数进入休眠以后是可以被信号打断的 |
+| `void up(struct semaphore *sem)`                 | 释放信号量                                                   |
+
+应用举例
+
+```c
+struct semaphore sem; 	/* 定义信号量 */ 
+sema_init(&sem, 1)； 	/* 初始化信号量 */ 
+down(&sem); 			/* 申请信号量 */ 
+/* 临界区 */ 
+up(&sem); 				/* 释放信号量 */
+```
 
 ## 消息队列
 
@@ -1347,11 +1388,133 @@ int main()
 
 ##### 同一进程下的不同线程间的消息队列的通信
 
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <mqueue.h>
+#include <errno.h>
+#include <string.h>
+typedef struct msg
+{
+    uint8_t *pucMsg;
+    uint32_t ulSize;
+}msg_t;
+
+void * thread_send_mq(void *p_ars)
+{
+    mqd_t mqd  = *(mqd_t *)p_ars;
+
+    char *msg_ptr1 = "hello world1";
+    char *msg_ptr2 = "hello world2";
+    char *msg_ptr3 = "hello world3";
+    size_t msg_len1 = strlen(msg_ptr1);
+    size_t msg_len2 = strlen(msg_ptr2);
+    size_t msg_len3 = strlen(msg_ptr3);
+    for (;;){
+
+        /* 先发送优先级低的 */
+        mq_send(mqd, msg_ptr1, msg_len1, 1);
+        mq_send(mqd, msg_ptr2, msg_len2, 2);
+        mq_send(mqd, msg_ptr3, msg_len3, 3);
+        printf("mq_send success\n");
+        sleep(2); 				// 休眠 5 s
+
+    }
+
+
+    pthread_exit(NULL);  	// 这里使用退出，返回值为pMsg
+
+}
+void * thread_rev_mq(void *p_ars)
+{
+    mqd_t mqd  = *(mqd_t *)p_ars;
+    struct mq_attr attr;
+    if (mq_getattr(mqd, &attr) == -1) {
+        perror("mq_getattr failed");
+        pthread_exit(NULL);
+    }
+    uint8_t *msg_ptr = (char *)malloc(attr.mq_msgsize);
+    unsigned msg_prio;
+
+    for(;;){
+        bzero(msg_ptr, attr.mq_msgsize);
+        int res = mq_receive(mqd, msg_ptr, attr.mq_msgsize, &msg_prio);
+        if (res != -1) {
+            printf("msg receive is:%s, msg_prio:%d\n", msg_ptr, msg_prio);
+        } else {
+            perror("mq_receive failed");
+        }
+    }
+
+}
+
+pthread_t g_thread_id1;
+pthread_t g_thread_id2;
+#define MQ_NAME "/temp.mq"  /* linux必须是/filename这种格式，不能出现二级目录 */
+int main (int argc, char *argv[])
+{
+
+    struct mq_attr attr;
+    attr.mq_maxmsg = 5; 	/* 设置消息队列的最大消息个数 */
+    attr.mq_msgsize = 1024; /* 设置每个消息的最大字节数 */
+
+     mqd_t mqd = mq_open(MQ_NAME, O_RDWR |O_CREAT|O_EXCL, 0666, &attr);
+    if (mqd == -1) {
+        perror("create failed");
+        mqd = mq_open(MQ_NAME, O_RDWR);
+        if (mqd == -1) {
+            perror("open failed");
+            exit(EXIT_FAILURE);
+        }
+    }
+    printf("mq_open %s success\n", MQ_NAME);
+
+    /* 打开成功，获取当前属性 */
+    mq_getattr(mqd, &attr);
+    printf("max msg = %ld, max bytes = %ld, currently = %ld\n",
+           attr.mq_maxmsg, attr.mq_msgsize, attr.mq_curmsgs);
+
+    /*
+     * 创建线程1
+     */
+    int errCode = pthread_create(&g_thread_id1,NULL,thread_send_mq,(void*)&mqd);
+    if(errCode){
+        printf("thread 1 errCode=%d \n",errCode);
+    }
+    /*
+     * 创建线程2
+     */
+    errCode = pthread_create(&g_thread_id2,NULL,thread_rev_mq,(void*)&mqd);
+    if(errCode){
+        printf("thread 2 errCode=%d \n",errCode);
+    }
+
+
+    /*
+     * 等待线程2返回
+     */
+    pthread_join(g_thread_id2,NULL);
+
+    /*
+     * 等待线程1返回,返回后才会往下执行
+     */
+    pthread_join(g_thread_id1,NULL);
+    printf("Main: program completed. Exiting.\n");
+
+    if (mq_close(mqd) != -1)
+        printf("mq_close %s success\n", MQ_NAME);
+
+    return 1;
+
+}
 ```
 
-```
+**运行结果**
 
-
+![](media/image-20210115104356698.png)
 
 ## 共享内存
 
@@ -1505,31 +1668,27 @@ int main()
     struct msg_form msg;  /*消息队列用于通知对方更新了共享内存*/
 
     // 获取key值
-    if((key = ftok(".", 'z')) < 0)
-    {
+    if((key = ftok(".", 'z')) < 0){
         perror("ftok error");
         exit(1);
     }
 
     // 创建共享内存
-    if((shmid = shmget(key, 1024, IPC_CREAT|0666)) == -1)
-    {
+    if((shmid = shmget(key, 1024, IPC_CREAT|0666)) == -1){
         perror("Create Shared Memory Error");
         exit(1);
     }
 
     // 连接共享内存
     shm = (char*)shmat(shmid, 0, 0);
-    if((int)shm == -1)
-    {
+    if((int)shm == -1){
         perror("Attach Shared Memory Error");
         exit(1);
     }
 
 
     // 创建消息队列
-    if ((msqid = msgget(key, IPC_CREAT|0777)) == -1)
-    {
+    if ((msqid = msgget(key, IPC_CREAT|0777)) == -1){
         perror("msgget error");
         exit(1);
     }
@@ -1538,13 +1697,12 @@ int main()
     semid = creat_sem(key);
 
     // 读数据
-    while(1)
-    {
+    while(1){
         msgrcv(msqid, &msg, 1, 888, 0); /*读取类型为888的消息*/
-        if(msg.mtext == 'q')  /*quit - 跳出循环*/
+        if(msg.mtext == 'q'){}  /*quit - 跳出循环*/
             break;
-        if(msg.mtext == 'r')  /*read - 读共享内存*/
-        {
+        }
+        if(msg.mtext == 'r'){  /*read - 读共享内存*/
             sem_p(semid);
             printf("%s\n",shm);
             sem_v(semid);
@@ -1632,37 +1790,32 @@ int main()
     int flag = 1; /*while循环条件*/
 
     // 获取key值
-    if((key = ftok(".", 'z')) < 0)
-    {
+    if((key = ftok(".", 'z')) < 0){
         perror("ftok error");
         exit(1);
     }
 
     // 获取共享内存
-    if((shmid = shmget(key, 1024, 0)) == -1)
-    {
+    if((shmid = shmget(key, 1024, 0)) == -1){
         perror("shmget error");
         exit(1);
     }
 
     // 连接共享内存
     shm = (char*)shmat(shmid, 0, 0);
-    if((int)shm == -1)
-    {
+    if((int)shm == -1){
         perror("Attach Shared Memory Error");
         exit(1);
     }
 
     // 创建消息队列
-    if ((msqid = msgget(key, 0)) == -1)
-    {
+    if ((msqid = msgget(key, 0)) == -1){
         perror("msgget error");
         exit(1);
     }
 
     // 获取信号量
-    if((semid = semget(key, 0, 0)) == -1)
-    {
+    if((semid = semget(key, 0, 0)) == -1){
         perror("semget error");
         exit(1);
     }
@@ -1674,8 +1827,7 @@ int main()
     printf("*    Input q to quit.                 *\n");
     printf("***************************************\n");
 
-    while(flag)
-    {
+    while(flag){
         char c;
         printf("Please input command: ");
         scanf("%c", &c);
@@ -1718,7 +1870,322 @@ int main()
  while((c=getchar())!='\n' && c!=EOF);
 ```
 
+**运行结果**：
+
+![](media/image-20210115111952061.png)
+
 ### POSIX IPC共享内存
+
+#### 基本概念
+
+**POSIX提供两种方式的共享内存**
+
+1. ） [内存映射文件](http://blog.csdn.net/daiyudong2020/article/details/50493522)(memory-mapped file)，由`open`函数打开，由mmap函数把所得到的描述符映射到当前进程空间地址中的一个文件；
+
+2. 共享内存区对象(shared-memory object)，由`shm_open`函数打开一个Posix.1 IPC名字，所返回的描述符由mmap函数映射到当前进程的地址空间。
+
+   ![](media/image-20210115113145613.png)
+
+**区别**
+
+- 内存映射文件的数据载体是物理文件
+
+- 共享内存区对象，也就是共享的数据载体是物理内存。
+
+**我们经常说的共享内存，一般是指共享内存区对象，也就是共享物理内存**.
+
+共享内存并未提供同步机制，也就是说，在第一个进程结束对共享内存的写操作之前，并无自动机制可以阻止第二个进程开始对它进行读写。所以我们通常需要同步机制控制对共享内存的访问，比如信号量。
+
+#### 关键函数说明
+
+1. shm_open函数:创建一个新的共享内存区对象或打开一个已存在的共享内存区对象。
+
+   ```c
+   #include <sys/mman.h>
+   #include <sys/stat.h>        /* For mode constants */
+   #include <fcntl.h>           /* For O_* constants */
+   int shm_open(const char *name, int oflag, mode_t mode);
+   
+   返回：若成功则非负描述符，若出错则为-1
+   参数：
+   oflag：参数与open函数的flags一样，必须含有O_RDONLY或O_RDWR标准。
+   mode：参数与open函数的mode一样，是指定权限位。如果没有指定O_CREAT标志，那么该参数可以指定为0。
+   ```
+
+   
+
+2. shm_unlink函数:删除一个共享内存区对象的名字，删除一个名字不会影响对于其底层支撑对象的现有引用，直到对于该对象的引用全部关闭为止。
+
+   ```c
+   #include <sys/mman.h>
+   #include <sys/stat.h>        /* For mode constants */
+   #include <fcntl.h>           /* For O_* constants */
+   int shm_unlink(const char *name);
+   
+   返回：若成功则为0，若出错则为-1
+   
+   ```
+
+   
+
+3. ftruncate函数:处理mmap的时候，普通文件或共享内存区对象的大小都可以通过调用***\*ftruncate函数\****修改
+
+   ```c
+   #include <unistd.h>
+   #include <sys/types.h>
+   int truncate(const char *path, off_t length);
+   int ftruncate(int fd, off_t length);
+   
+   返回：若成功则为0，若出错则为-1
+   我们调用ftruncate来指定新创建的共享内存区对象的大小，或者修改已存在的对象的大小。
+   当打开一个已存在的共享内存区对象时，我们可调用 fstat来获取有关该对象的信息
+   ```
+
+4. fatat函数
+
+   ```c
+   #include <sys/types.h>
+   #include <sys/stat.h>
+   #include <unistd.h>
+   int fstat(int fd, struct stat *buf);
+   
+   返回：若成功则为0，若出错则为-1
+   stat结构有12个或以上的成员，然而当fd指代一个内存共享区对象时，只有四个成员含有信息。
+       
+   struct stat {
+     mode_t    st_mode;    /* protection */
+     uid_t     st_uid;     /* user ID of owner */
+     gid_t     st_gid;     /* group ID of owner */
+     off_t     st_size;    /* total size, in bytes */
+   };
+   ```
+
+   
+
+5. mmap函数：把一个文件或者一个Posix共享内存区对象映射至调用进程的地址空间
+
+   ```c
+   #include <sys/mman.h>    
+   void *mmap(void *addr, size_t length, int prot, int flags,  
+                     int fd, off_t offset);  
+              
+   返回：若成功则为被映射区的起始地址，若出错则为MAP_FAILED   
+   
+   参数：
+   addr:可以指定描述符fd应被映射到进程内空间的起始地址，它通常被指定为一个空指针，这样告诉内核自己去选择起始地址，无论哪种情况下，该函数的返回值都是描述符fd所映射到内存区的其实地址。这里需要注意的是，文件需要初始化长度，否则对内存操作时会产生SIGBUS信息（硬件错误）。
+   
+   length：是映射到调用进程地址空间中字节数，它从被映射文件开头offset个字节出开始算。offset通常设置为0。
+   port：内存映射区的保护由port参数指定，通常设置为PROT_READ | PROT_WRITE（可读与可写）：
+   	PORT_READ   -> 可读
+   	PORT_WRITE  -> 可写
+   	PORT_EXEC   -> 可执行
+   	PORT_NONE   -> 数据不可访问
+       
+   flags：用于设置内存映射区的数据被修改时，是否改变其底层支撑对象(这里的对象是文件)，MAP_SHARED和MAP_PRIVATE必须指定一个
+   
+   MAP_SHARED  -> 变动是共享的
+   MAP_PRIVATE -> 变动是私自的
+   MAP_FIXED   -> 准确的解析addr参数    
+   举例：
+   当flags设定为MAP_SHARED时，在内存中对文件的修改会同步到物理文件中，可通过less查看
+   当flags设定为MAP_PRIVATE时，在内存中对文件的修改不会同步到物理文件中，可通过less查看
+   mmap成功返回后，fd参数可以关闭。该操作对由于mmap建立的映射关系没有影响
+   ```
+
+6. munmap函数：从某个进程空间删除一个映射关系
+
+   ```
+   #include <sys/mman.h>  
+   int munmap(void *addr, size_t length);  
+   
+   返回：若成功则为0，若出错则为-1
+   其中addr参数是由mmap返回的地址，len是映射区的大小。再次访问这些地址将导致向调用进程产生一个SIGSEGV信号。
+   
+   ```
+
+   
+
+#### 示例
+
+- 创建修改输出删除共享内存区
+
+  ```c
+  #include <stdio.h>
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <fcntl.h>
+  #include <unistd.h>
+  #include <sys/mman.h>
+  #include <errno.h>
+  #include <stdlib.h>
+   
+  #define MAXSIZE 1024*1024*16   /*共享内存的大小，建议设置成内存页的整数倍*/
+  #define FILENAME "shm.test"
+   
+  int main()
+  {
+      /* 创建共享对象,可以查看/dev/shm目录 */
+      int fd = shm_open(FILENAME, O_CREAT | O_TRUNC | O_RDWR, 0777);
+      if (fd == -1) {
+          perror("open failed:");
+          exit(1);
+      }
+   
+      /* 调整大小 */
+      if (ftruncate(fd, MAXSIZE) == -1) {
+          perror("ftruncate failed:");
+          exit(1);
+      }
+   
+      /* 获取属性 */
+      struct stat buf;
+      if (fstat(fd, &buf) == -1) {
+          perror("fstat failed:");
+          exit(1);
+      }
+      printf("the shm object size is %ld\n", buf.st_size);
+   
+      sleep(30);
+   
+      /* 如果引用计数为0，系统释放内存对象 */
+      if (shm_unlink(FILENAME) == -1) {
+          perror("shm_unlink failed:");
+          exit(1);
+      }
+      printf("shm_unlink %s success\n", FILENAME);
+   
+      return 0;
+  }
+  ```
+
+  运行结果如下：
+
+  ![](media/image-20210115135251445.png)
+
+  ![](media/image-20210115135326146.png)
+
+- 一个进程写，一个进程读
+
+  - 写进程write_shm.c
+
+    ```c
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <sys/mman.h>
+    #include <errno.h>
+    #include <stdlib.h>
+    #include <string.h>
+     
+    #define MAXSIZE 1024*4   /*共享内存的大小，建议设置成内存页的整数倍*/
+    #define FILENAME "shm.test"
+     
+    int main()
+    {
+        /* 创建共享对象,可以查看/dev/shm目录 */
+        int fd = shm_open(FILENAME, O_CREAT | O_TRUNC | O_RDWR, 0777);
+        if (fd == -1) {
+            perror("open failed:");
+            exit(1);
+        }
+     
+        /* 调整大小 */
+        if (ftruncate(fd, MAXSIZE) == -1) {
+            perror("ftruncate failed:");
+            exit(1);
+        }
+     
+        /* 获取属性 */
+        struct stat buf;
+        if (fstat(fd, &buf) == -1) {
+            perror("fstat failed:");
+            exit(1);
+        }
+        printf("the shm object size is %ld\n", buf.st_size);
+     
+        /* 建立映射关系 */
+        char *ptr = (char*)mmap(NULL, MAXSIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        if (ptr == MAP_FAILED) {
+            perror("mmap failed:");
+            exit(1);
+        }
+        printf("mmap %s success\n", FILENAME);
+        close(fd); /* 关闭套接字 */
+     
+        /* 写入数据 */
+        char *content = "hello world";
+        strncpy(ptr, content, strlen(content));
+     
+        sleep(30);
+     
+        return 0;
+    }
+    ```
+
+  - 读进程read_shm.c
+
+    ```c
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <sys/mman.h>
+    #include <errno.h>
+    #include <stdlib.h>
+    #include <string.h>
+     
+    #define FILENAME "shm.test"
+     
+    int main()
+    {
+        /* 创建共享对象,可以查看/dev/shm目录 */
+        int fd = shm_open(FILENAME, O_RDONLY, 0);
+        if (fd == -1) {
+            perror("open failed:");
+            exit(1);
+        }
+     
+        /* 获取属性 */
+        struct stat buf;
+        if (fstat(fd, &buf) == -1) {
+            perror("fstat failed:");
+            exit(1);
+        }
+        printf("the shm object size is %ld\n", buf.st_size);
+     
+        /* 建立映射关系 */
+        char *ptr = (char*)mmap(NULL, buf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+        if (ptr == MAP_FAILED) {
+            perror("mmap failed:");
+            exit(1);
+        }
+        printf("mmap %s success\n", FILENAME);
+        close(fd); /* 关闭套接字 */
+     
+        printf("the read msg is:%s\n", ptr);
+     
+        sleep(5);
+     
+        return 0;
+    }
+    ```
+
+    运行结果如下：
+
+    ![](media/image-20210115135626337.png)
+
+- 同一进程下的不同线程间的共享内存通信
+
+  ```c
+  
+  ```
+
+  
+
+
 
 
 
