@@ -124,7 +124,7 @@
 
    上图中，第一部分修改添加内核头文件，根据自己的情况添加，我的内容如下：
 
-   ```c
+   ```
    <includepath>/home/book/embedfire/ebf_6ull_linux/include</includepath>
    <includepath>/home/book/embedfire/ebf_6ull_linux/arch/arm/include</includepath>
    <includepath>/home/book/embedfire/ebf_6ull_linux/arch/arm/mach-imx</includepath>

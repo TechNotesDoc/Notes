@@ -785,7 +785,7 @@ set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
 
    - 顶层CMakeFile.txt
 
-     ```cmake
+     ```bash
      SET(libsDir ./libs)
      MESSAGE("top libsDir=${libsDir}")
      
@@ -795,7 +795,7 @@ set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
 
    - sub目录下的CMakeFile.txt
 
-     ```cmake
+     ```bash
      # 假如这里不添加PARENT_SCOPE选项打印日志为A
      SET(libsDir ./sub/libs)
      
@@ -831,7 +831,7 @@ set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
 
    **格式**：
 
-   ```cmake
+   ```bash
    set(<variable> <value>... CACHE <type> <docstring> [FORCE])
    ```
 
@@ -851,7 +851,7 @@ set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
 
    **格式**
 
-   ```cmake
+   ```bash
    set(ENV{<variable>} [<value>])
    ```
 
@@ -859,7 +859,7 @@ set( <variable>  <value> [[CACHE <type> <docstring> [FORCE]] | PARENT_SCOPE])
 
    判断环境变量是否定义 
 
-   ```cmake
+   ```bash
    set(ENV{PATH} /home/martink)
    
    if(NOT DEFINED ENV{JAVA_HOME})

@@ -17,7 +17,7 @@
 
 .. toctree::
    :maxdepth: 1
-   :caption: Linux相关
+   :caption: Linux
 
    ./Doc/01.Linux相关/Linux_Index.rst
   
