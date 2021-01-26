@@ -6,7 +6,6 @@
  |入门学习|   |进阶学习|    |应用开发|
 =========== ============ ============
 
-
  .. |入门学习| image:: ./media/000.入门学习.png
 
  .. |进阶学习| image:: ./media/001.进阶学习.png
@@ -18,18 +17,19 @@
 .. toctree::
    :maxdepth: 1
    :caption: Linux
-
+   
    ./Doc/01.Linux相关/Linux_Index.rst
   
 .. toctree::
    :maxdepth: 1
-   :caption: 单片机相关
+   :caption: MCU
+   :glob:
 
-   ./Doc/08.单片机/MCU_Index.rst
+   ./Doc/08.单片机/*/*
 
 .. toctree::
    :maxdepth: 1
-   :caption: 网络通信相关
+   :caption: 网络通信
 
    ./Doc/09.网络通信/Network_Index.rst
 
@@ -41,7 +41,7 @@
 
 .. toctree::
    :maxdepth: 1
-   :caption: C语言相关
+   :caption: C & C++
 
    ./Doc/02.C语言相关/C_Index.rst
 
@@ -62,8 +62,9 @@
 .. toctree::
    :maxdepth: 1
    :caption: GIT
+   :glob:
 
-   ./Doc/07.GIT/GIT_Index.rst
+   ./Doc/07.GIT/*/*
 
 .. toctree::
    :maxdepth: 1

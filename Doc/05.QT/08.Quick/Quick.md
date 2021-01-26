@@ -6,7 +6,7 @@
 
 例如下面的代码就是一个qml内置的Button对象。内置对象还有很多：Rectangle、Lable等等。
 
-```c
+```qml
 Button {
 	text: "button1"
 	style:  btnStyle
@@ -19,7 +19,7 @@ Button {
 
 例如下面的代码，边框颜色，可以根据`control.hovered`不同而不同。
 
-```c
+```qml
 Component {
 	id: btnStyle
 	ButtonStyle {
@@ -48,7 +48,7 @@ Component {
 
 QML支持 int、real、double、bool、string、color、list、font等。例如下面的代码，有`string`和`bool`类型的。并且QML提供这些类型检测，如果不正确，会自动报错。QML还导入了QT的很多类型：Qtobject、Component、Connections、Binding等。
 
-```c
+```qml
 Button {
      text: "button1"  // string
      style:  btnStyle  
@@ -60,7 +60,7 @@ Button {
 
 一个对象只有一个id，且首字母必须小写，不能包含字母数字下划线以外的字符。
 
-```c
+```qml
 Component {
 	id: btnStyle // id 属性
 }
@@ -70,7 +70,7 @@ Component {
 
 列表属性是list类型的，length提供列表的数量，可以用下标访问列表项。
 
-```c
+```qml
 	 Item{
 		children:[
 			Text{text:"on"},
@@ -88,7 +88,7 @@ Component {
 
 例如下面的代码，当按钮点击的时候，会自动执行 `Qt.quit()`函数。
 
-```c
+```qml
     Button {
          text: "button1"   
          style:  btnStyle     
@@ -102,7 +102,7 @@ Component {
 
 有些时候使用一个`"."`或者使用分组的形式形成一个逻辑组，如下代码所示。
 
-```c
+```qml
     Text{
        font.pixelSize: 18;
        font.bold: true;
@@ -121,7 +121,7 @@ Component {
 
 QML中有个附加属性（attached properties）的概念，这是附加到对象上的一个额外属性。
 
-```c
+```qml
 Item{
     width:100
     height: 100
@@ -140,7 +140,7 @@ Item{
 
 ![](media/image-20200812112021097.png)
 
-```c
+```qml
     Rectangle {
          width: 100
          height: 100
@@ -155,7 +155,7 @@ Item{
 
 颜色的指定方式如下：
 
-```c
+```qml
 color: "red"     // red blue green transparent
 color: "#00AA00"   // 指定十六进制 #RRGGBB
 color: "#8000AA00" // 带透明通道的 #AARRGGBB
@@ -168,7 +168,7 @@ QML的渐变用Gradient，用GradientStop指定位置，范围是0.0-1.0 只能�
 
 ![](media/image-20200812113409148.png)
 
-```c
+```qml
     Rectangle {
          width: 100
          height: 100
@@ -186,7 +186,7 @@ QML的渐变用Gradient，用GradientStop指定位置，范围是0.0-1.0 只能�
 
 ![](media/image-20200812113345322.png)
 
-```c
+```qml
 
     Rectangle {
          width: 100
@@ -210,7 +210,7 @@ Item是Quick所有可视元素的基类，虽然Item自己什么也不绘制，�
 
 ![](media/image-20200812134423042.png)
 
-```c
+```qml
     Rectangle {
          width:  300
          height: 200
@@ -243,7 +243,7 @@ state、states、children、transitions等。虽然它本省不可见，但是�
 
 例如可以通过Item的`visibleChildren`或者`Children`属性访问孩子元素。
 
-```c
+```qml
 import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -304,7 +304,7 @@ Item{
 
 ![](media/image-20200812144842933.png)
 
-```c
+```qml
 import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -367,7 +367,7 @@ Item可以处理按键，所有从Item集成的元素都可以处理按键，比
 
 ![](media/image-20200812150102907.png)
 
-```c
+```qml
 import QtQuick 2.2
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -432,7 +432,7 @@ Window {
 
 ![](media/image-20200812150703061.png)
 
-```c
+```qml
  Text{
 	id:keyView
 	font.bold: true
@@ -451,7 +451,7 @@ Text文字的style有几种风格：Text.Outline、Text.Raised、Text.Sunken，�
 
 ![](media/image-20200812151819476.png)
 
-```c
+```qml
 import QtQuick 2.2
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -525,7 +525,7 @@ Window {
 	- label 属性类型也是Component，用来设置按钮的文本
 	- control可以访问按钮的各种状态。
 
-```c
+```qml
 import QtQuick 2.2
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -554,7 +554,7 @@ Window {
 
 当有多个按钮的时候可以使用组件来管理
 
-```c
+```qml
 import QtQuick 2.2
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -609,7 +609,7 @@ Image可以使用width和height设置图片的尺寸，填充模式fillMode Imag
 
 下面是一个具有等待图元的加载网络图片的例子
 
-```c
+```qml
 import QtQuick 2.2
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -688,7 +688,7 @@ import QtQuick.Dialogs 1.21
 
 ![](media/image-20200812164448885.png)
 
-```c
+```qml
 import QtQuick 2.2
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
@@ -765,7 +765,7 @@ Loader用来动态加载QML组件。属性介绍如下
 
 ![](media/image-20200813194023725.png)
 
-```c
+```qml
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.4
@@ -889,7 +889,7 @@ Rectangle {
 
 `qrc:/main.qml`内容如下：
 
-```c
+```qml
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.4
@@ -937,7 +937,7 @@ QML支持使用JavaScript动态创建/销毁对象,有两种方式动态创建�
 
 ![](media/image-20200813194710458.png)
 
-```c
+```qml
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.4
@@ -1080,9 +1080,8 @@ Qt 提供了两种在 QML 环境中使用 C++ 对象的方式：
 
 下面是 Q_PROPERTY 宏的原型：
 
-~~~c
-```c
-	Q_PROPERTY(type name
+~~~qml
+Q_PROPERTY(type name
            (READ getFunction [WRITE setFunction] |MEMBER memberName [(READ getFunction | WRITE setFunction)])
            [RESET resetFunction]
            [NOTIFY notifySignal]
@@ -1093,12 +1092,11 @@ Qt 提供了两种在 QML 环境中使用 C++ 对象的方式：
            [USER bool]
            [CONSTANT]
            [FINAL])
-```
 ~~~
 
 可以为一个属性命名，设定的选项数超过10个，实际上我们在实际使用中，很少能够用全 Q_PROPERTY 的所有选项，
 
-```c
+```qml
 Q_PROPERTY(int x READ getX)  // 定义一个类型为int，名字为x的属性, 通过getX()的成员函数来访问
 ```
 
@@ -1225,7 +1223,7 @@ private:
 
 `main.qml`文件源码
 
-```c
+```qml
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.4
@@ -1385,7 +1383,7 @@ int main(int argc, char *argv[])
 
 mian.qml源代码
 
-```c
+```qml
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.4
@@ -1438,7 +1436,7 @@ QML可以在组件中声明各种State(状态)，在状态中可以包含该组�
 
 以下代码展示的是使用State&Transactions方法实现一个页面切换的动画效果。
 
-```c
+```qml
  Window {
     visible: true
     width: 400; height: 300
@@ -1491,7 +1489,7 @@ QML可以在组件中声明各种State(状态)，在状态中可以包含该组�
 
 在属性上使用Behaviors（行为）关键字，指定在该属性改变时使用动画。修改以上代码使用Behaviors实现相同的效果。
 
-```c
+```qml
 Window {
     visible: true
     width: 400
@@ -1537,7 +1535,7 @@ Window {
 
 一个动画被应用为属性值的源（property value source），要使用“动画on属性”语法。
 
-```c
+```qml
 Window {
     visible: true
     width: 400
@@ -1563,7 +1561,7 @@ Window {
 
 #### 在信号处理器中创建一个动画，并在接收到信号时触发
 
-```c
+```qml
 Window {
     visible: true
     width: 400
@@ -1601,7 +1599,7 @@ Window {
 
 动画也可以像一个普通的QML对象一样进行创建，而不需要绑定到任何特定的对象和属性。
 
-```c
+```qml
 Window {
     visible: true
     width: 400
@@ -1648,7 +1646,7 @@ PropertyAnimation是用来为属性提供动画的最基本的动画元素，可
 
 - ColorAnimation允许颜色值设置from和to属性。
 
-```c
+```qml
 Rectangle {
         id: rect
         width: 100;
@@ -1661,7 +1659,7 @@ Rectangle {
 
 - RotationAnimation允许设定旋转的方向。
 
-```c
+```qml
 Rectangle {
         id: rect
         width: 100;
@@ -1683,7 +1681,7 @@ Rectangle {
 
 多个动画可以组合成一个单一的动画，这可以使用ParallelAnimation或者SequentialAnimation动画组元素中的一个实现。在ParallelAnimation中的动画会同时进行，而在SequentialAnimation中的动画会一个个地运行。想要运行多个动画，可以在一个动画组中定义。以下代码分别表示串行动画和并行动画。
 
-```c
+```qml
 Window {
     visible: true
     width: 400

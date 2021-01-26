@@ -1,13 +1,22 @@
 
-网络通信
+OSI模型
 ======================================================
 
 .. toctree::
    :maxdepth: 1
-   :caption: NetWork
    :titlesonly:
    :numbered:
+   :glob:
 
-   ./01.OSI模型/OSI模型.md
-   ./01.OSI模型/DSCP.md
-   ./02.netwox/netwox使用说明.md
+   ./01.OSI模型/*
+
+NetWox工具
+======================================================
+
+.. toctree::
+   :maxdepth: 1
+   :titlesonly:
+   :numbered:
+   :glob:
+
+   ./02.netwox/*

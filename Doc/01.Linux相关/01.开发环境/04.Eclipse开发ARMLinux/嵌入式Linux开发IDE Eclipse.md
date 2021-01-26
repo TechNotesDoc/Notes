@@ -16,7 +16,7 @@
 
    **创建桌面快捷方式**
 
-   ```c
+   ```bash
     
    cd /usr/share/applications
    sudo vim eclipse.desktop
@@ -480,7 +480,7 @@
 
 9. Eclipse项目下新建**Makefile**文件，内容如下
 
-   ```c
+   ```bash
    
    # 1. 使用不同的开发板内核时, 一定要修改KERN_DIR
    # 2. KERN_DIR中的内核要事先配置、编译, 为了能编译内核, 要先设置下列环境变量:
@@ -747,7 +747,7 @@
 
   - 第一步：生成symbols_linux.xml备用
 
-    ```c
+    ```bash
     cd ebf_6ull_linux/include/generated/ 
     
     cat autoconf.h |grep define |awk '{print "<macro><name>" $2 "</name><value>" $3 "</value></macro>"}' > symbols_linux.xml
