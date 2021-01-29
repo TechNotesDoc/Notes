@@ -1,4 +1,4 @@
-# gtest测试框架
+# GoogleTest
 
 ## 下载资源
 
