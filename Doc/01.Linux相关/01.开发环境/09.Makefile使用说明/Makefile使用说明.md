@@ -364,7 +364,7 @@ int main(void)
 
 2. **Demo/App/Makefile**
 
-```bash
+```
 # 设置交叉编译环境
 CROSS_COMPILE_PATH=/usr/local/arm_linux_4.8/bin
 CROSS_COMPILE=$(CROSS_COMPILE_PATH)/arm-linux-
